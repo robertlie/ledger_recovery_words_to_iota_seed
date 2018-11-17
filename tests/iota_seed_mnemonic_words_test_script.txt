@@ -1,0 +1,86 @@
+Manual test script
+
+==========================================================================================
+Tests OK
+==========================================================================================
+Test 1
+Words: abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon
+Ledger Account Index: 0
+Passphrase:
+Seed: RPGPDCLLFEIW9XSWBHNJZHPSTLVZHQCFTTBCPQJPTUNAOJGGGGNSUYTOHJHULWHVQGYPFAWTFYBZGPVZC
+==========================================================================================
+Test 2
+Words: blast derive number just topic write man dinner access crouch staff arctic genre elephant dinosaur roof raccoon unfold health stereo three place cheap rhythm
+Ledger Account Index: 0
+Address start index: 0
+Amount of addresses to generate: 3
+Passphrase:
+Seed: GHSGIU9SMCXPMBLFSKHVDKHDKXPRKDVROTLKYOWZNIGJFTSA9GYWJVRJTCNHYMSNJUNRAMYBIXQAFDDXW
+Address #0: EFPMWNRZPOD9QUSXPKRXTXFKVGKLFHDKASGZKFGBXBGSUTLXWTLHSLNAF9FXWMKPCNHW9GY9JMCGWFSJW
+Address #1: PUAFGRPICFZEYHFTZ99NXSTDJUYHTSRDGFCFEEPUHWZVVIZDN9QCQ9PVJQ9M9JPWHUEVPPPPGMBEZHIXC
+Address #2: MTP9RBRFITFVTFVRWRLPAJIETQTLBLMQOZLABDZGVFNQKTJGJYVSKWSEXENJIQBE9FJEZRTUHDUURLGYC
+==========================================================================================
+Test 3
+Words: zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo
+Seed: CJKBWGHCBJXJNLEGWSV9TRCEFWJGPGHBGCXZCZHMP9FNXXEDSBKBXGMMFVTFFDDU9RZNBDEGUBRKWLQFC
+==========================================================================================
+Test 4
+Words: ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO ZOO
+Ledger Account Index: 0
+Passphrase:
+Seed: CJKBWGHCBJXJNLEGWSV9TRCEFWJGPGHBGCXZCZHMP9FNXXEDSBKBXGMMFVTFFDDU9RZNBDEGUBRKWLQFC
+==========================================================================================
+Test 5
+Words: zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo
+Passphrase: hello
+Passphrase:
+Seed: BLHNEGGHXQBLHXMBPEFMIEWUXQPKMAFZPUDVVRJGMN9QGOVG9VWVAUS9LERCYHNMBNZBCDEFMYSMGGR9C
+==========================================================================================
+Test 6
+Words: zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo
+Ledger Account Index: 0
+Passphrase: 1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+Seed: I9RXMERY9YTMRDENYJGMJ9ZAXDCKZFYCSSM9FRUFLWAKMUNPXYCGPNESQVXOLDHELYZZLSSQALQDXBKPX
+==========================================================================================
+Test 7
+Words: zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo
+Ledger Account Index: 0
+Passphrase: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
+Seed: UYURZVEHUVFJEIVHLVZAEKSSYI9FYESZTFWFAGCCGTOPOSHU9OMRODMUJXCIQVEBFIMAWEVRBL9ILCRYC
+==========================================================================================
+Test 8
+Words: blast derive number just topic write man dinner access crouch staff arctic genre elephant dinosaur roof raccoon unfold health stereo three place cheap rhythm
+Ledger Account Index: 1
+Address start index: 0
+Amount of addresses to generate: 3
+Passphrase:
+Seed: QHZZGFKFMUHBHUYKNGNDOQMMDZNULRDDGEUCHWOOSKQ9O9PTALGQKUBLGWQVDKALCVSAA9SEOIQXKVKIW
+Address #0: GZBGLAKWOHNQTPXQYSEVZFSWZPIWOAQLHPEPCSDDLGBMHMVAXCISHWPWDNXCAVPYXKLFLRSDWNG9ZVUXWY9TGWRQDC
+Address #1: TI9ATDFPDKNQLWYPHRLESEIG9PRVRJBJFFIYZHQCPQNKFQZMJQOEIZKI9H9PWOYOBNJQYSFKQHQMBXMQDCZWTKSHLA
+Address #2: KWZLZRXEXUYXUMWYHMHBYMSYVGADVZPESFGBQHUQLXRIOPIIDIPXIKGHHRIHPSFNWHGXMCFQDQ9RXMGVCTGINRECRX
+
+==========================================================================================
+Tests NOK
+==========================================================================================
+Test 1: Only one word. Need 24 words.
+Words: abandon
+==========================================================================================
+Test 2: 25 words instead of 24 words. 
+Words: zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo
+==========================================================================================
+Test 3: 23 words instead of 24 words.
+Words: zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo
+==========================================================================================
+Test 4: Word 'klaas' not in the BIP32 English wordlist.
+Words: klaas
+==========================================================================================
+Test 5: Word 'klaas' not in the BIP32 English wordlist.
+Words: zoo zoo klaas zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo
+==========================================================================================
+Test 6: Passphrase contains only spaces
+Words: zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo
+Passphrase: [enter 2 spaces]
+==========================================================================================
+Test 7: Passphrase contains more than 100 characters.
+Words: zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo
+Passphrase: 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901

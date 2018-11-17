@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+Author: Robert Lie (mobilefish.com)
+
+This web application shows the BIP39 English wordlist.
+
+Javascript library used:
+- jsBIP39
+  Implementation of Bitcoin BIP-0039. 
+  More info: https://github.com/iancoleman/jsbip39 
+  Version: Latest commit 01be853 on 8 May 
+  This library works in a browser and does not need to be browserified.
+-->
+<html>
+<head>
+<title>Mobilefish.com - BIP39 English wordlist</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="lib/wordlist_english.js"></script>
+
+<style type="text/css">
+body {font-size: 1em; font-family: arial, helvetica; background-color: #fffada;}
+#warning{background-color: #008cba; border: 1px solid black; color: white; padding: 5px 15px; margin: 0; font-family: monospace; background-color: orange; color: black}
+</style>
+
+</head>
+<body>
+<h2>BIP39 English Wordlist</h2>
+
+<div id='output'></div>
+
+<br />
+<hr />
+<div id="warning">
+This application is created for educational purpose and shows the BIP39 English wordlist.
+
+<br /><br />
+If you've found this tool useful feel free to send me a tip (IOTA): FAEORRIJUKGRSS9UDNRSTKJDBHFHSFA99IVSCFFO9PIICXLGEHIKRPAWF9PSOWDOJNEUNPSUKZTZBAYY9QILAJUBDY
+<br /><br />
+Disclaimer: <br />
+Use this tool at your own risk! All information on this page is provided "as is", without any warranty.
+Mobilefish.com will not be liable for any damages, loss of profits or any other kind of loss you may sustain by using this tool.
+</div>
+<br />
+<!-- ======================================================================= -->
+<script type="text/javascript">
+"use strict";
+
+const language = "english";
+const wordsArr = WORDLISTS[language];
+
+function pad(number) {
+	if (number<=9999) {
+		number = ("000"+number).slice(-4);
+	}
+	return number;
+}
+
+let list = "";
+let counter = 1;
+wordsArr.forEach(word => {
+	list += pad(counter) +".&nbsp;&nbsp;&nbsp;&nbsp;"+word+"<br />";
+	counter++;
+});
+
+document.getElementById('output').innerHTML = list;
+
+</script>
+
+</body>
+</html>

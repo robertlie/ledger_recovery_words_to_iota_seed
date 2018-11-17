@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<!--
+Author: Robert Lie (mobilefish.com)
+
+This web application convert Ledger Nano S recovery words to IOTA seed.
+It also generates IOTA addresses.
+
+It is based on the python aplication 'recover-iota-seed-from-ledger-mnemonics' created by muXxer
+See: https://github.com/muXxer/recover-iota-seed-from-ledger-mnemonics
+
+Javascript libraries used:
+-	jsBIP39
+	Implementation of Bitcoin BIP-0039. 
+	The mnemonic library has been ported to JavaScript and is called jsBIP39 
+	More info: https://github.com/iancoleman/jsbip39 
+	Version: Latest commit 01be853 on 8 May 
+	This library works in a browser and does not need to be browserified.
+
+-	bip32-utils
+	Provides a small set of utilities for use with BIP32 HD key nodes.
+	More info: https://github.com/bitcoinjs/bip32-utils 
+	Version: 0.11.1
+	It is a Node.JS module. How this module is browserified is explained in:
+	https://www.mobilefish.com/developer/nodejs/nodejs_quickguide_browserify_bip32_utils.html
+
+-	Kerl
+	A hashing function, based on Keccak, with conversion to ternary. 
+	More info: https://github.com/iotaledger/kerl
+	Use code: Latest commit 7ca94d3 on 22 Sep 2017
+	It is a Node.JS module. How this module is browserified is explained in:
+	https://www.mobilefish.com/developer/nodejs/nodejs_quickguide_browserify_kerl.html
+
+- 	IOTA library
+	IOTA Client Reference Implementation in Javascript
+	More info: https://github.com/iotaledger/iota.js/releases/tag/v0.5.0
+	Version: 0.5.0
+	This library works in a browser and does not need to be browserified.
+
+I have used the following test script to manually test this tool:
+https://www.mobilefish.com/download/iota/iota_seed_mnemonic_words_test_script.txt
+-->
+<html>
+<head>
+<title>Mobilefish.com - Convert Ledger Nano S recovery words to IOTA seed and generate IOTA addresses.</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="lib/wordlist_english.js"></script>
+<script type="text/javascript" src="lib/sjcl-bip39.js"></script>
+<script type="text/javascript" src="lib/jsbip39.js"></script>
+<script type="text/javascript" src="lib/bip32_utils_browser.js"></script>
+<script type="text/javascript" src="lib/kerl_browser.js"></script>
+<script type="text/javascript" src="lib/iota-browser.js"></script>
+
+<style type="text/css">
+a:link {text-decoration: none; color: blue;}
+body {font-size: 1em; font-family: arial, helvetica; background-color: #fffada;}
+button {background-color: #008cba; border: 1px solid black; color: white; padding: 5px 15px; text-align: center; text-decoration: none; display: inline-block; border-radius: 4px; font-size: 16px;}
+input {padding: 5px 5px; margin: 5px 0; box-sizing: border-box; border: 1px solid black; border-radius: 4px; background-color: white; font-family: monospace; font-size: 1.1em;}
+textarea {padding: 5px 5px; margin: 5px 0; box-sizing: border-box; border: 1px solid black; border-radius: 4px; background-color: white; font-family: monospace; font-size: 1.1em;}
+input[disabled="disabled"] { background-color: #d3d3d3; }
+textarea[disabled="disabled"] { background-color: #d3d3d3; }
+.container {background-color: #008cba; border: 1px solid black; color: white; padding: 5px 15px; margin: 0; font-family: monospace;}
+#disclaimer{background-color: #fda429; border: 1px solid black; color: black; padding: 5px 15px; margin: 0; font-family: monospace;}
+#warning{background-color: #000000; color: white; padding: 0; margin: 5px 0px; font-family: monospace; font-size: 1.2em;}
+
+</style>
+
+</head>
+<body>
+<h2>Convert Ledger Nano S recovery words to IOTA seed and generate IOTA addresses (v1.0.0)</h2>
+
+Enter 24 mnemonic words in the correct order and separate each word by space(s). All words are converted to lowercase: <a href="javascript:clearField('words');clearOutputs()">Clear</a><br />
+<textarea rows="4" cols="100" id='words' onkeyup="javascript:clearOutputs()"></textarea><br />
+See the <a href='bip39_wordlist.html' target='_blank'>BIP39 English wordlist</a>.
+<br /><br />
+
+Enter the Ledger Nano S passphrase if you have set it (this is not your pincode). Max 100 characters: <a href="javascript:clearField('passphrase');clearOutputs()">Clear</a><br />
+<input type='text' id='passphrase' value='' size='100' maxlength='100' onkeyup="javascript:clearOutputs()"/>
+<br /><br />
+
+Ledger account index:<br />
+<input type='text' id='ledgerAccountIndex' value='0' size='20' onkeyup="javascript:clearOutputs()"/>
+<br /><br />
+
+Address start index:<br />
+<input type='text' id='keyIndexStart' value='0' size='20' onkeyup="javascript:clearOutputs()"/>
+<br /><br />
+
+Amount of addresses to generate (max. 50):<br />
+<input type='text' id='numberOfAddresses' value='3' size='20' onkeyup="javascript:clearOutputs()"/>
+<br /><br />
+
+Restored IOTA seed: <a href="javascript:clearOutputs()">Clear</a><br />
+<input type='text' id='seed' value='' size='100' disabled='disabled'/>
+<br /><br />
+
+Seed length: <a href="javascript:clearOutputs()">Clear</a><br />
+<input type='text' id='seedLength' value='' size='2' maxlength='2' disabled='disabled'/>
+<br /><br />
+
+Path: <a href="javascript:clearOutputs()">Clear</a><br />
+<input type='text' id='path' value='' size='50' disabled='disabled'/>
+<br /><br />
+
+<button onclick="javascript:clearOutputs();wordsToSeed()">Convert Words to IOTA Seed</button> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<button onclick="javascript:clearOutputs();wordsToSeed();generateAddresses()">Convert Words to Seed and Generate IOTA Addresses</button>
+<br /><br />
+
+<div id='addressesOutput'></div>
+
+<hr />
+<div id="disclaimer">
+This application is created for educational purpose demonstrating how to convert Ledger Nano S recovery words to IOTA seed and how to generate IOTA addresses.
+<div id="warning">
+USE THIS APPLICATION ONLY FOR EDUCATIONAL PURPOSE. IF YOU USE IT FOR ANY OTHER PURPOSE, IT MAY RESULT IN LOSING ALL YOUR IOTAS.
+</div>
+If you've found this tool useful feel free to send me a tip (IOTA): FAEORRIJUKGRSS9UDNRSTKJDBHFHSFA99IVSCFFO9PIICXLGEHIKRPAWF9PSOWDOJNEUNPSUKZTZBAYY9QILAJUBDY
+<br /><br />
+Disclaimer: <br />
+Use this tool at your own risk! All information on this page is provided "as is", without any warranty.
+Mobilefish.com will not be liable for any damages, loss of profits or any other kind of loss you may sustain by using this tool.
+</div>
+<br />
+<!-- ======================================================================= -->
+<script type="text/javascript">
+"use strict";
+
+const debug = false;
+const MAX_NUMBER_ADDRESSES = 50;
+const LANGUAGE = "english";
+const SECURITY_LEVEL = 2;
+const PASSPHRASE_LENGTH = 100;
+
+function clearAddressesOutput() {
+	document.getElementById('addressesOutput').innerHTML = "";
+}
+
+function clearField(id) {
+	document.getElementById(id).value = "";
+}
+
+function clearOutputs(){
+	clearField('seed');
+	clearField('seedLength');
+	clearField('path');
+	clearAddressesOutput();
+}
+
+function buf2hex(buffer) {
+	return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+}
+
+const getNewAddressPromise = function(iota, seed, options) {
+	return new Promise(function(resolve, reject){
+		iota.api.getNewAddress(seed, options, function(error, inputs){
+			if (error) {
+				reject(error);
+			} else {
+				let startIndex = options.index;
+				let msg = "<"+"/br>";
+				msg += '<div class="container">';
+				msg += 'Generated addresses (incl. 9-characters checksum at the end):<br /><br />';
+				for (let i=0; i<inputs.length; i++) {
+					let address = inputs[i];
+					msg += (startIndex + i) +" - "+ address + "<br />";
+				}
+				msg += "<"+"/div>";
+				msg += "<"+"/br>";
+				document.getElementById('addressesOutput').innerHTML = msg;
+				resolve(inputs);
+			}
+		});
+	});
+}
+
+function generateAddresses() {
+	let keyIndexStart = document.getElementById('keyIndexStart').value;
+	let numberOfAddresses = document.getElementById('numberOfAddresses').value;
+	const seed = document.getElementById('seed').value;
+	const iota = new IOTA();
+
+	if (!(iota.valid.isNum(keyIndexStart) && keyIndexStart.indexOf('.') == -1)) {
+		alert("Key index start is not a valid number");
+		return;
+	}
+	if (!(iota.valid.isNum(numberOfAddresses) && numberOfAddresses.indexOf('.') == -1)) {
+		alert("Number of addresses is not a valid number");
+		return;
+	}
+	if (numberOfAddresses > MAX_NUMBER_ADDRESSES) {
+		alert("Max number of addresses exceeded.");
+		return;
+	}
+	if (numberOfAddresses == 0) {
+		alert("Minimum one address is required.");
+		return;
+	}
+
+	if (!iota.valid.isHash(seed)) {
+		alert('The seed is invalid.');
+		throw new Error('The seed is invalid.');
+	}
+
+	// Convert to integers
+	keyIndexStart = parseInt(keyIndexStart);
+	numberOfAddresses = parseInt(numberOfAddresses);
+
+	const options = {
+		index: keyIndexStart,
+		total: numberOfAddresses,
+		checksum: true,
+		security: SECURITY_LEVEL,
+		returnAll: false
+	}
+
+	getNewAddressPromise(iota, seed, options).catch(function(err){
+		alert(err);
+	});
+}
+
+function wordsToSeed() {
+	let words = document.getElementById('words').value;
+	let ledgerAccountIndex = document.getElementById('ledgerAccountIndex').value;
+
+	// Convert words to lowercase
+	words = words.toLowerCase();
+
+	// Create instance
+	const m = new Mnemonic(LANGUAGE);
+
+	// Check number of words
+	let wordsArr = m.splitWords(words);
+	if ((wordsArr.length != 24)) {
+		alert('To restore the seed you need to enter 24 mnemonic words.\nYou have entered '+ wordsArr.length + ' word(s).');
+		throw new Error('Incorrect number of mnemonic words entered.');
+	}
+
+	// Check if words are valid
+	let inValidWords = [];
+	wordsArr.forEach(word => {
+		if (WORDLISTS[LANGUAGE].indexOf(word) == -1) {
+			inValidWords.push(word);
+		}
+	});
+
+	if(inValidWords.length > 0) {
+		alert('The word(s) "'+ inValidWords.join(", ") +'" can not be found in the BIP39 words list.');
+		throw new Error('Word(s) can not be found in the BIP39 words list.');
+	}
+
+	let passphrase = document.getElementById('passphrase').value;
+
+	// Check passphrase length. Max 100 characters
+	if(passphrase.length > PASSPHRASE_LENGTH) {
+		alert('The passphrase has "+ passphrase.length  +" characters. Max '+PASSPHRASE_LENGTH+' characters are allowed.');
+		throw new Error('Passphrase length exceeded.');
+	}
+
+	// Check if passphrase does not contain only spaces
+	if (/^\s+$/.test(passphrase)) {
+		alert("Passphrase only contains spaces.");
+		throw new Error('Passphrase only contains spaces.');
+	}
+
+	// Remove spaces and tabs from begin and end of string
+	passphrase = passphrase.trim();
+	ledgerAccountIndex = ledgerAccountIndex.trim();
+
+	const iota = new IOTA();
+
+	if (!(iota.valid.isNum(ledgerAccountIndex) && ledgerAccountIndex.indexOf('.') == -1)) {
+		alert("Ledger account index is not a valid number");
+		return;
+	}
+
+	// Convert words to a 512 bits seed, called masterSeed
+	// See: https://www.mobilefish.com/download/blockchain/blockchain_mnemonic_words_bip39_part28.pdf#page=17
+	// 0b4acfba371e0857b45417a0422b88714be5399abaa6ac95962816df92011bb080e56fc4dbd602269fa626f6a321f04091e82374323672711d8263f540afcb14
+	const masterSeed = m.toSeed(words, passphrase);
+
+	const masterNode = Bip32JS.bitcoin.HDNode.fromSeedHex(masterSeed);
+
+	// https://www.mobilefish.com/download/blockchain/blockchain_hd_wallets_part29.pdf#page=19
+	// m/purpose/coinType/account/change
+	// purpose = 44 because it complies to BIP-44, see: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
+	// coinType = IOTA (4218), see: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+	// account = 0
+	// change = 0
+
+	const path = "m/44'/4218'/"+ledgerAccountIndex+"'/0'";
+
+	if (debug) console.log("path=",path);
+
+	const node = masterNode.derivePath(path);
+	if (debug) console.log(node);
+
+	const chainCode = node.chainCode;
+	// chainCode = 89e9bd6277981b55f21a019f00cc2c2a2965a37fab5e8061eae7b0644a63458e
+	// chainCode is 256 bits (= 32 bytes). It has 64 hex characters.
+	if (debug) console.log("chainCode =", buf2hex(chainCode));
+
+	const keyPair = node.keyPair
+	const privateKey = keyPair.d.toBuffer(32);
+	// privateKey = 1f60793d999c992fff3ca7b1e72db9f36685907946b287df62f796a0a31ee36c
+	// privateKey is 256 bits (= 32 bytes). It has 64 hex characters.
+	if (debug) console.log("privateKey=", buf2hex(privateKey));
+
+	// chainCode   = 89e9bd6277981b55f21a019f00cc2c2a2965a37fab5e8061eae7b0644a63458e
+	// privateKey  = 1f60793d999c992fff3ca7b1e72db9f36685907946b287df62f796a0a31ee36c
+	const privateKeyPartA = privateKey.slice(0, 32);
+	const privateKeyPartB = privateKey.slice(16, 32);
+	const chainCodePartA = chainCode.slice(0, 16);
+	const chainCodePartB = chainCode.slice(0, 32);
+
+	if (debug) console.log("privateKeyPartA=", buf2hex(privateKeyPartA));
+	if (debug) console.log("privateKeyPartB=", buf2hex(privateKeyPartB));
+	if (debug) console.log("chainCodePartA=", buf2hex(chainCodePartA));
+	if (debug) console.log("chainCodePartB=", buf2hex(chainCodePartB));
+
+	// Create new Uint8Array dataBytes = privateKeyPartA + chainCodePartA + privateKeyPartB + chainCodePartB
+	// The bytes arrays are just appended.
+	let dataBytes = new Uint8Array(privateKeyPartA.byteLength + chainCodePartA.byteLength + privateKeyPartB.byteLength + chainCodePartB.byteLength);
+	dataBytes.set(new Uint8Array(privateKeyPartA),0);
+	dataBytes.set(new Uint8Array(chainCodePartA), privateKeyPartA.byteLength);
+	dataBytes.set(new Uint8Array(privateKeyPartB), (privateKeyPartA.byteLength+chainCodePartA.byteLength));
+	dataBytes.set(new Uint8Array(chainCodePartB), (privateKeyPartA.byteLength+chainCodePartA.byteLength+privateKeyPartB.byteLength));
+
+	// 1f60793d999c992fff3ca7b1e72db9f36685907946b287df62f796a0a31ee36c89e9bd6277981b55f21a019f00cc2c2a6685907946b287df62f796a0a31ee36c89e9bd6277981b55f21a019f00cc2c2a2965a37fab5e8061eae7b0644a63458e
+	if (debug) console.log("dataBytes=", buf2hex(dataBytes));
+
+	const kerl = new KerlJS.Kerl();
+	const dataWords = KerlJS.Converter.wordsFromBytes(dataBytes);
+	if (debug) console.log("dataWords=",dataWords);
+
+	const dataWordArr = KerlJS.CryptoJS.lib.WordArray.create(dataWords, dataBytes.length);
+	if (debug) console.log("dataBytes.length=",dataBytes.length);
+
+	kerl.k.update(dataWordArr);
+	let trits_out = [];
+	kerl.squeeze(trits_out,0,kerl.HASH_LENGTH);
+	const iota_seed = KerlJS.Converter.trytes(trits_out);
+	if (debug) console.log("trits_out=", trits_out);
+	if (debug) console.log("iota_seed=", iota_seed);
+
+	document.getElementById('seed').value = iota_seed;
+	document.getElementById('seedLength').value = iota_seed.length;
+	document.getElementById('path').value = path;
+}
+
+</script>
+
+</body>
+</html>
