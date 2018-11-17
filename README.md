@@ -14,7 +14,8 @@ IF ANYONE HAS YOUR RECOVERY WORDS OR SEED THEY CAN STEAL ALL YOUR IOTAS.
 
 This application also generates addresses.  
 Do not use these generated addresses to receive funds.  
-If you do, these addresses maybe reused for outgoing transactions, which means IOTAS on these addresses can be stolen!
+If you do, these addresses maybe reused for outgoing transactions,  
+which means IOTAS on these addresses can be stolen!
 
 Use this application at your own risk!
 ```
