@@ -145,8 +145,20 @@ function clearOutputs(){
 	clearAddressesOutput();
 }
 
-function buf2hex(buffer) {
-	return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+function binArr2hexString(binArr) {
+	return Array.prototype.map.call(new Uint8Array(binArr), x => ('00' + x.toString(16)).slice(-2)).join('');
+}
+
+function binArr2binString(binArr, size){
+	let binString = "";
+	binArr.forEach(element => {
+		if(element > 0) {
+			binString += (element.toString(2)).padStart(size, '0') + "|";
+		} else {
+			binString += ((~element + 1 >>> 0).toString(2)).padStart(size, '0') + "|";
+		}
+	});
+	return binString;
 }
 
 const getNewAddressPromise = function(iota, seed, options) {
@@ -296,13 +308,13 @@ function wordsToSeed() {
 	const chainCode = node.chainCode;
 	// chainCode = 89e9bd6277981b55f21a019f00cc2c2a2965a37fab5e8061eae7b0644a63458e
 	// chainCode is 256 bits (= 32 bytes). It has 64 hex characters.
-	if (debug) console.log("chainCode =", buf2hex(chainCode));
+	if (debug) console.log("chainCode =", binArr2hexString(chainCode));
 
-	const keyPair = node.keyPair
+	const keyPair = node.keyPair;
 	const privateKey = keyPair.d.toBuffer(32);
 	// privateKey = 1f60793d999c992fff3ca7b1e72db9f36685907946b287df62f796a0a31ee36c
 	// privateKey is 256 bits (= 32 bytes). It has 64 hex characters.
-	if (debug) console.log("privateKey=", buf2hex(privateKey));
+	if (debug) console.log("privateKey=", binArr2hexString(privateKey));
 
 	// chainCode   = 89e9bd6277981b55f21a019f00cc2c2a2965a37fab5e8061eae7b0644a63458e
 	// privateKey  = 1f60793d999c992fff3ca7b1e72db9f36685907946b287df62f796a0a31ee36c
@@ -311,30 +323,45 @@ function wordsToSeed() {
 	const chainCodePartA = chainCode.slice(0, 16);
 	const chainCodePartB = chainCode.slice(0, 32);
 
-	if (debug) console.log("privateKeyPartA=", buf2hex(privateKeyPartA));
-	if (debug) console.log("privateKeyPartB=", buf2hex(privateKeyPartB));
-	if (debug) console.log("chainCodePartA=", buf2hex(chainCodePartA));
-	if (debug) console.log("chainCodePartB=", buf2hex(chainCodePartB));
+	if (debug) console.log("privateKeyPartA=", binArr2hexString(privateKeyPartA));
+	if (debug) console.log("privateKeyPartB=", binArr2hexString(privateKeyPartB));
+	if (debug) console.log("chainCodePartA=", binArr2hexString(chainCodePartA));
+	if (debug) console.log("chainCodePartB=", binArr2hexString(chainCodePartB));
 
 	// Create new Uint8Array dataBytes = privateKeyPartA + chainCodePartA + privateKeyPartB + chainCodePartB
 	// The bytes arrays are just appended.
+	// dataBytes is an array consisting of 96 bytes (3 x 32 bytes = 768 bits)
 	let dataBytes = new Uint8Array(privateKeyPartA.byteLength + chainCodePartA.byteLength + privateKeyPartB.byteLength + chainCodePartB.byteLength);
 	dataBytes.set(new Uint8Array(privateKeyPartA),0);
 	dataBytes.set(new Uint8Array(chainCodePartA), privateKeyPartA.byteLength);
 	dataBytes.set(new Uint8Array(privateKeyPartB), (privateKeyPartA.byteLength+chainCodePartA.byteLength));
 	dataBytes.set(new Uint8Array(chainCodePartB), (privateKeyPartA.byteLength+chainCodePartA.byteLength+privateKeyPartB.byteLength));
 
+	if (debug) console.log("dataBytes=", dataBytes);
 	// 1f60793d999c992fff3ca7b1e72db9f36685907946b287df62f796a0a31ee36c89e9bd6277981b55f21a019f00cc2c2a6685907946b287df62f796a0a31ee36c89e9bd6277981b55f21a019f00cc2c2a2965a37fab5e8061eae7b0644a63458e
-	if (debug) console.log("dataBytes=", buf2hex(dataBytes));
-
-	const kerl = new KerlJS.Kerl();
-	const dataWords = KerlJS.Converter.wordsFromBytes(dataBytes);
-	if (debug) console.log("dataWords=",dataWords);
-
-	const dataWordArr = KerlJS.CryptoJS.lib.WordArray.create(dataWords, dataBytes.length);
+	if (debug) console.log("dataBytes hex=", binArr2hexString(dataBytes));
+	if (debug) console.log("dataBytes bin=", binArr2binString(dataBytes, 8));
 	if (debug) console.log("dataBytes.length=",dataBytes.length);
 
-	kerl.k.update(dataWordArr);
+	const kerl = new KerlJS.Kerl();
+
+	// Convert dataBytes (96 bytes) to a CryptoJS compatible word array.
+	// Each word consists of 32 bits.
+	// wordArr is an array consisting of 24 words (24 x 32 bits = 768 bits)
+	const wordArr = KerlJS.Converter.wordsFromBytes(dataBytes);
+	if (debug) console.log("wordArr=",wordArr);
+	if (debug) console.log("wordArr bin=", binArr2binString(wordArr, 32));
+
+	// Create a CryptoJS wordArray object.
+	const wordArrObj = KerlJS.CryptoJS.lib.WordArray.create(wordArr, dataBytes.length);
+	if (debug) console.log("wordArrObj=",wordArrObj);
+	if (debug) console.log("wordArrObj.words=",wordArrObj.words);
+	if (debug) console.log("wordArrObj.words bin=",binArr2binString(wordArrObj.words, 32));
+
+	// kerl.k executes CryptoJS.algo.SHA3.create() which creates a sha3 instance.
+	// kerl.k.update reads in the CryptoJS wordArray object that will be SHA3 hashed.
+	// PLEASE NOTE:  CryptoJS.algo.SHA3 implemented Keccak and NOT SHA3.
+	kerl.k.update(wordArrObj);
 	let trits_out = [];
 	kerl.squeeze(trits_out,0,kerl.HASH_LENGTH);
 	const iota_seed = KerlJS.Converter.trytes(trits_out);
