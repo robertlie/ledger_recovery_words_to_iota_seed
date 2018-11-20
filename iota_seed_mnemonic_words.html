@@ -93,8 +93,12 @@ Restored IOTA seed: <a href="javascript:clearOutputs()">Clear</a><br />
 <input type='text' id='seed' value='' size='100' disabled='disabled'/>
 <br /><br />
 
+Seed checksum: <a href="javascript:clearOutputs()">Clear</a><br />
+<input type='text' id='seedChecksum' value='' size='3' maxlength='3' disabled='disabled'/>
+<br /><br />
+
 Seed length: <a href="javascript:clearOutputs()">Clear</a><br />
-<input type='text' id='seedLength' value='' size='2' maxlength='2' disabled='disabled'/>
+<input type='text' id='seedLength' value='' size='3' maxlength='2' disabled='disabled'/>
 <br /><br />
 
 Path: <a href="javascript:clearOutputs()">Clear</a><br />
@@ -141,6 +145,7 @@ function clearField(id) {
 function clearOutputs(){
 	clearField('seed');
 	clearField('seedLength');
+	clearField('seedChecksum');
 	clearField('path');
 	clearAddressesOutput();
 }
@@ -369,6 +374,7 @@ function wordsToSeed() {
 	if (debug) console.log("iota_seed=", iota_seed);
 
 	document.getElementById('seed').value = iota_seed;
+	document.getElementById('seedChecksum').value = iota.utils.addChecksum(iota_seed, 3, false).substr(-3);
 	document.getElementById('seedLength').value = iota_seed.length;
 	document.getElementById('path').value = path;
 }
