@@ -2,7 +2,7 @@
 This web application is created for educational purpose demonstrating how to convert Ledger Nano S recovery words to IOTA seed and how to generate IOTA addresses.
 
 [1]: https://www.mobilefish.com/services/cryptocurrency/iota_seed_mnemonic_words.html "Mobilefish.com"
-
+[2]: https://youtu.be/b7xY8raOr1E "YouTube"
 ## WARNING
 
 ```
@@ -37,4 +37,4 @@ You can find this application online:
 DO NOT ENTER YOUR PERSONAL RECOVERY WORDS IN THIS APPLICATION, ONLY ENTER DUMMY / TEST RECOVERY WORDS.
 
 ## More information
-Watch this YouTube video: TBD
+Watch this YouTube video: [https://youtu.be/b7xY8raOr1E][2]
