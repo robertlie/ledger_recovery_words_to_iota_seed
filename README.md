@@ -33,8 +33,6 @@ the Ledger device.
 A Ledger device cost $80 and it is better to spend another $80 than the possibility that a hacker can
 steal all your funds when you use this tool.
 
-SO DO NOT USE THIS TOOL UNLESS YOU KNOW WHAT YOUR ARE DOING!
-
 This application also generates addresses.  
 Do not use these generated addresses to receive funds.  
 If you do, these addresses maybe reused for outgoing transactions,  
